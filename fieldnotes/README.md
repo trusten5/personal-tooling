@@ -2,7 +2,7 @@
 
 A self-contained personal CRM and career workspace for students and early-career engineers doing job searches, networking, and internship tracking. No setup, no account, no server. Download one HTML file, open it in your browser, and you're done.
 
-![fieldnotes screenshot](screenshot.png)
+![fieldnotes screenshot](fieldnotes-ss.png)
 
 ## what it does
 
