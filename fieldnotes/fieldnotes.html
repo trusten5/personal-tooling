@@ -1,0 +1,1620 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Networking CRM</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,400&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;1,9..144,300&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --bg:#0e0e0e;--bg1:#161616;--bg2:#1e1e1e;--bg3:#272727;
+  --border:#2e2e2e;--border2:#3a3a3a;
+  --text:#e8e4dc;--text2:#9a9590;--text3:#5a5650;
+  --accent:#c8b97a;
+  --danger:#c8614a;--warn:#c89a4a;--info:#5a8fc8;--success:#6ab87a;
+  --radius:6px;--radius2:10px;
+  --font-mono:'DM Mono',monospace;--font-serif:'Fraunces',serif;
+}
+html{font-size:14px;}
+body{background:var(--bg);color:var(--text);font-family:var(--font-mono);min-height:100vh;overflow-x:hidden;}
+::-webkit-scrollbar{width:6px;height:6px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px;}
+.app{display:grid;grid-template-columns:240px 1fr;min-height:100vh;}
+.sidebar{background:var(--bg1);border-right:1px solid var(--border);display:flex;flex-direction:column;position:sticky;top:0;height:100vh;overflow-y:auto;}
+.main{display:flex;flex-direction:column;min-height:100vh;}
+.sidebar-head{padding:24px 20px 20px;border-bottom:1px solid var(--border);}
+.sidebar-logo{font-family:var(--font-serif);font-size:18px;font-weight:300;color:var(--text);letter-spacing:-0.02em;line-height:1.2;}
+.sidebar-logo span{color:var(--accent);font-style:italic;}
+.sidebar-date{font-size:10px;color:var(--text3);margin-top:6px;letter-spacing:0.08em;text-transform:uppercase;}
+.sidebar-stats{padding:16px 20px;border-bottom:1px solid var(--border);}
+.stat-row{display:flex;justify-content:space-between;align-items:baseline;padding:3px 0;}
+.stat-key{font-size:10px;color:var(--text3);letter-spacing:0.06em;text-transform:uppercase;}
+.stat-val{font-size:15px;font-weight:500;color:var(--text);}
+.stat-val.red{color:var(--danger);}
+.stat-val.amber{color:var(--warn);}
+.stat-val.green{color:var(--success);}
+.sidebar-nav{padding:12px 0;flex:1;}
+.nav-label{font-size:9px;letter-spacing:0.12em;text-transform:uppercase;color:var(--text3);padding:8px 20px 4px;}
+.nav-item{display:flex;align-items:center;justify-content:space-between;padding:7px 20px;cursor:pointer;transition:all 0.12s;border-left:2px solid transparent;color:var(--text2);font-size:12px;}
+.nav-item:hover{background:var(--bg2);color:var(--text);}
+.nav-item.active{background:var(--bg2);color:var(--accent);border-left-color:var(--accent);}
+.nav-item .cnt{font-size:10px;color:var(--text3);background:var(--bg3);padding:1px 6px;border-radius:10px;}
+.sidebar-actions{padding:16px 20px;border-top:1px solid var(--border);display:flex;flex-direction:column;gap:8px;}
+.btn{display:flex;align-items:center;gap:6px;padding:8px 12px;border-radius:var(--radius);border:1px solid var(--border2);background:transparent;color:var(--text2);font-family:var(--font-mono);font-size:11px;cursor:pointer;letter-spacing:0.04em;transition:all 0.12s;text-align:left;width:100%;}
+.btn:hover{background:var(--bg2);color:var(--text);}
+.btn.primary{background:var(--accent);color:#1a1a0e;border-color:var(--accent);font-weight:500;}
+.btn.primary:hover{background:#d4c98a;}
+.btn.danger{color:var(--danger);border-color:var(--danger);}
+.btn.danger:hover{background:rgba(200,97,74,0.1);}
+.btn svg{width:13px;height:13px;flex-shrink:0;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;}
+.topbar{padding:16px 28px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;background:var(--bg1);position:sticky;top:0;z-index:10;}
+.search-wrap{flex:1;position:relative;}
+.search-wrap svg{position:absolute;left:10px;top:50%;transform:translateY(-50%);width:13px;height:13px;stroke:var(--text3);fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;pointer-events:none;}
+.search{width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:7px 10px 7px 30px;color:var(--text);font-family:var(--font-mono);font-size:12px;outline:none;}
+.search:focus{border-color:var(--border2);}
+.search::placeholder{color:var(--text3);}
+.sort-select{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:7px 10px;color:var(--text2);font-family:var(--font-mono);font-size:11px;outline:none;cursor:pointer;}
+.content{padding:24px 28px;flex:1;}
+.section-head{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:16px;}
+.section-title{font-family:var(--font-serif);font-size:20px;font-weight:300;color:var(--text);font-style:italic;}
+.section-sub{font-size:10px;color:var(--text3);letter-spacing:0.06em;}
+.contact-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px;}
+.empty-state{text-align:center;padding:80px 20px;color:var(--text3);}
+.empty-state .big{font-family:var(--font-serif);font-size:48px;font-weight:300;font-style:italic;color:var(--border2);display:block;margin-bottom:12px;}
+.empty-state p{font-size:12px;line-height:1.7;}
+.card{background:var(--bg1);border:1px solid var(--border);border-radius:var(--radius2);padding:16px;cursor:pointer;transition:all 0.15s;position:relative;overflow:hidden;}
+.card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--stage-color,transparent);}
+.card:hover{border-color:var(--border2);background:var(--bg2);transform:translateY(-1px);}
+.card.overdue{border-color:rgba(200,97,74,0.3);}
+.card.overdue::before{background:var(--danger);}
+.card-header{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:12px;}
+.card-avatar{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:500;flex-shrink:0;letter-spacing:0.04em;}
+.card-info{flex:1;min-width:0;}
+.card-name{font-weight:500;font-size:13px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.card-meta{font-size:11px;color:var(--text2);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.stage-pill{font-size:9px;letter-spacing:0.08em;text-transform:uppercase;padding:3px 8px;border-radius:20px;white-space:nowrap;font-weight:500;}
+.card-badges{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:10px;}
+.badge{font-size:10px;padding:2px 7px;border-radius:4px;display:flex;align-items:center;gap:4px;}
+.badge.owe{background:rgba(200,97,74,0.12);color:var(--danger);border:1px solid rgba(200,97,74,0.2);}
+.badge.offered{background:rgba(107,184,122,0.1);color:var(--success);border:1px solid rgba(107,184,122,0.2);}
+.badge.heat{background:rgba(200,154,74,0.1);color:var(--warn);border:1px solid rgba(200,154,74,0.2);}
+.card-notes{font-size:11px;color:var(--text3);line-height:1.6;margin-bottom:10px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+.card-footer{display:flex;align-items:center;justify-content:space-between;}
+.card-date{font-size:10px;color:var(--text3);}
+.card-date.urgent{color:var(--danger);}
+.card-actions{display:flex;gap:4px;opacity:0;transition:opacity 0.12s;}
+.card:hover .card-actions{opacity:1;}
+.icon-btn{background:var(--bg3);border:1px solid var(--border);border-radius:4px;padding:4px 6px;cursor:pointer;color:var(--text2);display:flex;align-items:center;transition:all 0.1s;}
+.icon-btn:hover{background:var(--border2);color:var(--text);}
+.icon-btn svg{width:11px;height:11px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;}
+.heat-bar{display:flex;gap:2px;margin-top:6px;}
+.heat-dot{width:8px;height:8px;border-radius:50%;background:var(--border2);}
+.heat-dot.lit{background:var(--warn);}
+.pipeline{display:flex;gap:12px;overflow-x:auto;padding-bottom:12px;}
+.pipeline-col{flex-shrink:0;width:220px;}
+.pipeline-col-head{font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--text3);padding:8px 0;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border);margin-bottom:8px;}
+.pipeline-col-head .pcnt{background:var(--bg2);border:1px solid var(--border);font-size:9px;padding:1px 6px;border-radius:10px;color:var(--text2);}
+.pipeline-card{background:var(--bg1);border:1px solid var(--border);border-radius:var(--radius);padding:10px 12px;margin-bottom:8px;cursor:pointer;transition:all 0.12s;border-left:2px solid var(--stage-color,var(--border));}
+.pipeline-card:hover{background:var(--bg2);}
+.pipeline-card-name{font-size:12px;font-weight:500;color:var(--text);}
+.pipeline-card-meta{font-size:10px;color:var(--text3);margin-top:2px;}
+.pipeline-card-owe{font-size:10px;color:var(--danger);margin-top:4px;}
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:100;align-items:center;justify-content:center;backdrop-filter:blur(2px);}
+.overlay.open{display:flex;}
+.modal{background:var(--bg1);border:1px solid var(--border2);border-radius:var(--radius2);width:560px;max-width:95vw;max-height:90vh;overflow-y:auto;box-shadow:0 24px 80px rgba(0,0,0,0.6);}
+.modal-head{padding:20px 24px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:var(--bg1);z-index:1;}
+.modal-title{font-family:var(--font-serif);font-size:18px;font-weight:300;font-style:italic;color:var(--text);}
+.modal-close{background:transparent;border:none;color:var(--text3);cursor:pointer;font-size:20px;line-height:1;padding:2px 6px;}
+.modal-close:hover{color:var(--text);}
+.modal-body{padding:20px 24px;}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.fg{display:flex;flex-direction:column;gap:4px;}
+.fg label{font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:var(--text3);}
+.fg input,.fg select,.fg textarea{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:8px 10px;color:var(--text);font-family:var(--font-mono);font-size:12px;outline:none;width:100%;}
+.fg input:focus,.fg textarea:focus{border-color:var(--accent);}
+.fg select{cursor:pointer;}
+.fg textarea{height:68px;resize:vertical;line-height:1.6;}
+.fg input::placeholder,.fg textarea::placeholder{color:var(--text3);}
+.form-sep{grid-column:1/-1;height:1px;background:var(--border);margin:4px 0;}
+.form-section-label{grid-column:1/-1;font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--accent);margin-top:4px;}
+.modal-foot{padding:16px 24px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:flex-end;gap:8px;position:sticky;bottom:0;background:var(--bg1);}
+.modal-foot .left{margin-right:auto;}
+.heat-select{display:flex;gap:6px;margin-top:2px;}
+.heat-opt{width:28px;height:28px;border-radius:50%;border:1px solid var(--border2);background:transparent;cursor:pointer;font-size:10px;color:var(--text3);font-family:var(--font-mono);display:flex;align-items:center;justify-content:center;transition:all 0.1s;}
+.heat-opt.selected{background:var(--warn);border-color:var(--warn);color:#1a1000;}
+.heat-opt:hover{border-color:var(--warn);}
+.digest-box{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);padding:16px;font-size:11px;line-height:1.8;white-space:pre-wrap;color:var(--text2);max-height:400px;overflow-y:auto;font-family:var(--font-mono);}
+.toast{position:fixed;bottom:24px;right:24px;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--radius);padding:10px 16px;font-size:12px;color:var(--text);z-index:999;transform:translateY(80px);opacity:0;transition:all 0.2s;pointer-events:none;}
+.toast.show{transform:translateY(0);opacity:1;}
+.nudge-bar{background:rgba(200,97,74,0.08);border-bottom:1px solid rgba(200,97,74,0.15);padding:8px 28px;font-size:11px;color:var(--danger);}
+.nudge-bar a{color:var(--danger);cursor:pointer;text-decoration:underline;text-underline-offset:2px;}
+.view-toggle{display:flex;gap:1px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;}
+.vt-btn{background:transparent;border:none;padding:6px 10px;cursor:pointer;color:var(--text3);display:flex;align-items:center;}
+.vt-btn:hover{color:var(--text);}
+.vt-btn.active{background:var(--bg3);color:var(--accent);}
+.vt-btn svg{width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;}
+.tag{display:inline-block;font-size:9px;letter-spacing:0.06em;text-transform:uppercase;padding:2px 6px;border-radius:3px;margin-right:3px;background:var(--bg3);color:var(--text3);border:1px solid var(--border);}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
+
+/* scratchpad toolbar */
+.scratch-toolbar{display:flex;align-items:center;gap:4px;padding:8px 0;margin-bottom:8px;flex-wrap:wrap;}
+.tb-btn{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:5px 9px;font-family:var(--font-mono);font-size:11px;color:var(--text2);cursor:pointer;transition:all 0.1s;display:flex;align-items:center;gap:4px;}
+.tb-btn:hover{background:var(--bg3);color:var(--text);}
+.tb-btn svg{width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;}
+.tb-sep{width:1px;height:18px;background:var(--border);margin:0 2px;}
+/* scratchpad heading styles */
+#scratchpad-area h1{font-family:var(--font-serif);font-size:22px;font-weight:300;font-style:italic;color:var(--text);margin:16px 0 6px;line-height:1.3;}
+#scratchpad-area h2{font-size:14px;font-weight:500;color:var(--accent);letter-spacing:0.06em;text-transform:uppercase;margin:14px 0 4px;border-bottom:1px solid var(--border);padding-bottom:4px;}
+#scratchpad-area h3{font-size:13px;font-weight:500;color:var(--text2);margin:10px 0 3px;}
+/* checkbox */
+.scratch-cb{display:inline-flex;align-items:center;gap:8px;cursor:pointer;user-select:none;}
+.scratch-cb input[type=checkbox]{width:14px;height:14px;cursor:pointer;accent-color:var(--accent);}
+.scratch-cb.done{text-decoration:line-through;color:var(--text3);}
+/* job cards */
+.job-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px;}
+.job-card{background:var(--bg1);border:1px solid var(--border);border-radius:var(--radius2);padding:16px;cursor:pointer;transition:all 0.15s;position:relative;overflow:hidden;}
+.job-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--jstage-color,var(--border));}
+.job-card:hover{border-color:var(--border2);background:var(--bg2);transform:translateY(-1px);}
+.job-stage-pill{font-size:9px;letter-spacing:0.08em;text-transform:uppercase;padding:3px 8px;border-radius:20px;white-space:nowrap;font-weight:500;}
+.aspire-card{background:var(--bg1);border:1px solid var(--border);border-radius:var(--radius2);padding:14px 16px;display:flex;align-items:flex-start;justify-content:space-between;gap:12px;transition:all 0.15s;}
+.aspire-card:hover{border-color:var(--border2);background:var(--bg2);}
+.aspire-card:hover .aspire-actions{opacity:1!important;}
+
+[contenteditable][placeholder]:empty:before{content:attr(placeholder);color:var(--text3);pointer-events:none;display:block;}
+.card{animation:fadeIn 0.2s ease both;}
+@media(max-width:700px){.app{grid-template-columns:1fr;}.sidebar{position:relative;height:auto;}.contact-grid{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+<div class="app">
+
+<aside class="sidebar">
+  <div class="sidebar-head">
+    <div class="sidebar-logo">field<span>notes</span></div>
+    <div class="sidebar-date" id="today-label"></div>
+  </div>
+  <div class="sidebar-stats" id="sidebar-stats"></div>
+  <nav class="sidebar-nav">
+    <div class="nav-label">views</div>
+    <div class="nav-item active" data-view="all" onclick="setFilter('all',this)">all contacts <span class="cnt" id="cnt-all">0</span></div>
+    <div class="nav-label">stage</div>
+    <div class="nav-item" data-view="identified" onclick="setFilter('identified',this)">identified <span class="cnt" id="cnt-identified">0</span></div>
+    <div class="nav-item" data-view="reached-out" onclick="setFilter('reached-out',this)">reached out <span class="cnt" id="cnt-reached-out">0</span></div>
+    <div class="nav-item" data-view="responded" onclick="setFilter('responded',this)">responded <span class="cnt" id="cnt-responded">0</span></div>
+    <div class="nav-item" data-view="call-scheduled" onclick="setFilter('call-scheduled',this)">call scheduled <span class="cnt" id="cnt-call-scheduled">0</span></div>
+    <div class="nav-item" data-view="had-call" onclick="setFilter('had-call',this)">had call <span class="cnt" id="cnt-had-call">0</span></div>
+    <div class="nav-item" data-view="follow-up" onclick="setFilter('follow-up',this)">follow-up sent <span class="cnt" id="cnt-follow-up">0</span></div>
+    <div class="nav-item" data-view="warm" onclick="setFilter('warm',this)">warm connection <span class="cnt" id="cnt-warm">0</span></div>
+    <div class="nav-item" data-view="closed" onclick="setFilter('closed',this)">closed / hired <span class="cnt" id="cnt-closed">0</span></div>
+    <div class="nav-label">smart</div>
+    <div class="nav-item" data-view="overdue" onclick="setFilter('overdue',this)">overdue <span class="cnt" id="cnt-overdue">0</span></div>
+    <div class="nav-item" data-view="owe" onclick="setFilter('owe',this)">i owe them <span class="cnt" id="cnt-owe">0</span></div>
+    <div class="nav-item" data-view="hot" onclick="setFilter('hot',this)">high heat <span class="cnt" id="cnt-hot">0</span></div>
+    <div class="nav-item" data-view="alumni" onclick="setFilter('alumni',this)">hmc alumni <span class="cnt" id="cnt-alumni">0</span></div>
+    <div class="nav-item" data-view="interactions" onclick="setFilter('interactions',this)">interactions <span class="cnt" id="cnt-interactions">0</span></div>
+    <div class="nav-label">jobs</div>
+    <div class="nav-item" data-view="jobs" onclick="setFilter('jobs',this)">job pipeline <span class="cnt" id="cnt-jobs">0</span></div>
+    <div class="nav-item" data-view="aspirations" onclick="setFilter('aspirations',this)">aspirations</div>
+    <div class="nav-label">other</div>
+    <div class="nav-item" data-view="scratchpad" onclick="setFilter('scratchpad',this)">scratchpad</div>
+  </nav>
+  <div class="sidebar-actions">
+    <button class="btn primary" onclick="openAddModal()">
+      <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>add contact
+    </button>
+    <button class="btn" onclick="showDigest()">
+      <svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>daily digest
+    </button>
+    <button class="btn" onclick="showExport()">
+      <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>export data
+    </button>
+    <button class="btn" onclick="exportScratchpad()">
+      <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>export notes .txt
+    </button>
+    <button class="btn" onclick="showCompaniesModal()">
+      <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>companies
+    </button>
+    <button class="btn" onclick="triggerImport()">
+      <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>import JSON
+    </button>
+    <input type="file" id="import-input" accept=".json" style="display:none;" onchange="importJSON(event)">
+  </div>
+</aside>
+
+<main class="main">
+  <div id="nudge-bar"></div>
+  <div class="topbar">
+    <div class="search-wrap">
+      <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input class="search" type="text" placeholder="search name, company, role, notes..." id="search-input" oninput="render()">
+    </div>
+    <select class="sort-select" id="sort-select" onchange="render()">
+      <option value="overdue">sort: overdue first</option>
+      <option value="recent">sort: recently added</option>
+      <option value="name">sort: name a–z</option>
+      <option value="heat">sort: heat score</option>
+      <option value="stage">sort: stage</option>
+    </select>
+    <div class="view-toggle">
+      <button class="vt-btn active" id="vt-grid" onclick="setView('grid',this)" title="grid">
+        <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+      </button>
+      <button class="vt-btn" id="vt-pipeline" onclick="setView('pipeline',this)" title="pipeline">
+        <svg viewBox="0 0 24 24"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+      </button>
+    </div>
+  </div>
+  <div class="content" id="main-content"></div>
+</main>
+</div>
+
+<!-- CONTACT MODAL -->
+<div class="overlay" id="contact-modal">
+<div class="modal">
+  <div class="modal-head">
+    <div class="modal-title" id="modal-title-text">add contact</div>
+    <button class="modal-close" onclick="closeModal('contact-modal')">×</button>
+  </div>
+  <div class="modal-body">
+    <div class="form-grid">
+      <div class="fg"><label>name *</label><input id="f-name" placeholder="Alex Kim" type="text"></div>
+      <div class="fg"><label>company / org</label><input id="f-company" placeholder="Skild AI" type="text"></div>
+      <div class="fg"><label>role / title</label><input id="f-role" placeholder="Founding Engineer" type="text"></div>
+      <div class="fg"><label>stage</label>
+        <select id="f-stage">
+          <option value="identified">identified</option>
+          <option value="reached-out">reached out</option>
+          <option value="responded">responded</option>
+          <option value="call-scheduled">call scheduled</option>
+          <option value="had-call">had call</option>
+          <option value="follow-up">follow-up sent</option>
+          <option value="warm">warm connection</option>
+          <option value="closed">closed / hired</option>
+        </select>
+      </div>
+      <div class="fg"><label>source</label>
+        <select id="f-source">
+          <option value="LinkedIn">LinkedIn</option>
+          <option value="HMC alumni">HMC alumni</option>
+          <option value="professor / faculty">professor / faculty</option>
+          <option value="referral">referral</option>
+          <option value="dorm / classmate">dorm / classmate</option>
+          <option value="event">event</option>
+          <option value="cold outreach">cold outreach</option>
+          <option value="other">other</option>
+        </select>
+      </div>
+      <div class="fg"><label>last contact date</label><input id="f-date" type="date"></div>
+      <div class="fg"><label>preferred contact method</label>
+        <select id="f-method">
+          <option value="LinkedIn">LinkedIn DM</option>
+          <option value="email">email</option>
+          <option value="text">text</option>
+          <option value="in-person">in person</option>
+        </select>
+      </div>
+      <div class="fg"><label>linkedin url</label><input id="f-linkedin" placeholder="linkedin.com/in/alexkim" type="text"></div>
+      <div class="fg"><label>email</label><input id="f-email" placeholder="alex@company.com" type="text"></div>
+      <div class="form-section-label">heat score — how promising?</div>
+      <div class="fg" style="grid-column:1/-1;">
+        <label>heat (1–5)</label>
+        <div class="heat-select" id="heat-select">
+          <button class="heat-opt" data-val="1" onclick="setHeat(1)">1</button>
+          <button class="heat-opt" data-val="2" onclick="setHeat(2)">2</button>
+          <button class="heat-opt" data-val="3" onclick="setHeat(3)">3</button>
+          <button class="heat-opt" data-val="4" onclick="setHeat(4)">4</button>
+          <button class="heat-opt" data-val="5" onclick="setHeat(5)">5</button>
+        </div>
+      </div>
+      <div class="form-sep"></div>
+      <div class="fg" style="grid-column:1/-1;"><label>i owe them</label><input id="f-owe" placeholder="send portfolio link, follow up..." type="text"></div>
+      <div class="fg" style="grid-column:1/-1;"><label>they offered / mentioned</label><input id="f-offered" placeholder="intro to X, happy to chat about Y..." type="text"></div>
+      <div class="fg" style="grid-column:1/-1;"><label>target ask</label>
+        <select id="f-ask">
+          <option value="">— not set —</option>
+          <option value="referral">referral / intro</option>
+          <option value="informational">informational interview</option>
+          <option value="internship">internship / role</option>
+          <option value="co-op">co-op / gap semester role</option>
+          <option value="mentorship">mentorship</option>
+          <option value="rec-letter">recommendation letter</option>
+          <option value="feedback">feedback on project/resume</option>
+          <option value="thanks">just saying thanks</option>
+          <option value="none">no specific ask</option>
+        </select>
+      </div>
+      <div class="fg" style="grid-column:1/-1;"><label>notes</label><textarea id="f-notes" placeholder="personal details, shared interests, what you talked about..."></textarea></div>
+      <div class="fg" style="grid-column:1/-1;"><label>tags (comma separated)</label><input id="f-tags" placeholder="robotics, series-a, bay-area" type="text"></div>
+    </div>
+  </div>
+  <div class="modal-foot">
+    <div class="left"><button class="btn danger" id="delete-btn" style="display:none" onclick="deleteContact()">
+      <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>delete
+    </button></div>
+    <button class="btn" onclick="closeModal('contact-modal')">cancel</button>
+    <button class="btn primary" onclick="saveContact()">save contact</button>
+  </div>
+</div>
+</div>
+
+<!-- DIGEST MODAL -->
+<div class="overlay" id="digest-modal">
+<div class="modal" style="width:520px;">
+  <div class="modal-head"><div class="modal-title">daily digest</div><button class="modal-close" onclick="closeModal('digest-modal')">×</button></div>
+  <div class="modal-body">
+    <p style="font-size:11px;color:var(--text3);margin-bottom:12px;line-height:1.6;">copy into a recurring calendar event or reminder for a daily push notification.</p>
+    <div class="digest-box" id="digest-content"></div>
+  </div>
+  <div class="modal-foot">
+    <button class="btn" onclick="copyDigest()">copy to clipboard</button>
+    <button class="btn primary" onclick="closeModal('digest-modal')">done</button>
+  </div>
+</div>
+</div>
+
+<!-- EXPORT MODAL -->
+<div class="overlay" id="export-modal">
+<div class="modal" style="width:400px;">
+  <div class="modal-head"><div class="modal-title">export data</div><button class="modal-close" onclick="closeModal('export-modal')">×</button></div>
+  <div class="modal-body" style="display:flex;flex-direction:column;gap:10px;">
+    <p style="font-size:11px;color:var(--text3);line-height:1.7;">export your contacts to back them up or move between devices.</p>
+    <button class="btn" onclick="exportJSON()" style="justify-content:center;">download as JSON (full backup)</button>
+    <button class="btn" onclick="exportCSV()" style="justify-content:center;">download as CSV (spreadsheet)</button>
+  </div>
+  <div class="modal-foot"><button class="btn primary" onclick="closeModal('export-modal')">close</button></div>
+</div>
+</div>
+
+<!-- DETAIL MODAL -->
+<div class="overlay" id="detail-modal">
+<div class="modal" style="width:580px;">
+  <div class="modal-head"><div class="modal-title" id="detail-title"></div><button class="modal-close" onclick="closeModal('detail-modal')">×</button></div>
+  <div class="modal-body" id="detail-body"></div>
+  <div class="modal-foot">
+    <button class="btn" onclick="openEditFromDetail()">edit</button>
+    <button class="btn" onclick="markContactedById();closeModal('detail-modal')">mark contacted today</button>
+    <button class="btn primary" onclick="closeModal('detail-modal')">close</button>
+  </div>
+</div>
+</div>
+
+<!-- COMPANIES MODAL -->
+<div class="overlay" id="companies-modal">
+<div class="modal" style="width:420px;">
+  <div class="modal-head"><div class="modal-title">companies</div><button class="modal-close" onclick="closeModal('companies-modal')">×</button></div>
+  <div class="modal-body">
+    <p style="font-size:11px;color:var(--text3);margin-bottom:12px;line-height:1.6;">companies from your contacts are added automatically. add custom ones here to use # mentions in the scratchpad.</p>
+    <div style="display:flex;gap:8px;margin-bottom:16px;">
+      <input id="new-company-input" type="text" placeholder="company or org name..." style="flex:1;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:8px 10px;color:var(--text);font-family:var(--font-mono);font-size:12px;outline:none;">
+      <button class="btn primary" style="width:auto;white-space:nowrap;" onclick="addCustomCompany()">add</button>
+    </div>
+    <div id="companies-list" style="display:flex;flex-direction:column;gap:4px;max-height:300px;overflow-y:auto;"></div>
+  </div>
+  <div class="modal-foot"><button class="btn primary" onclick="closeModal('companies-modal')">done</button></div>
+</div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const STAGES={
+  'identified':{label:'identified',color:'#5a5650'},
+  'reached-out':{label:'reached out',color:'#5a8fc8'},
+  'responded':{label:'responded',color:'#8f7ac8'},
+  'call-scheduled':{label:'call scheduled',color:'#c89a4a'},
+  'had-call':{label:'had call',color:'#6ab87a'},
+  'follow-up':{label:'follow-up sent',color:'#c87a8f'},
+  'warm':{label:'warm connection',color:'#4ab8a0'},
+  'closed':{label:'closed / hired',color:'#c8b97a'},
+};
+const AVATAR_BG=['#1a2030','#201a30','#1a2820','#302018','#201818','#182830'];
+const AVATAR_FG=['#5a8fc8','#8f7ac8','#6ab87a','#c89a4a','#c87a6a','#4ab8c8'];
+function initials(n){return n.split(' ').filter(Boolean).slice(0,2).map(w=>w[0].toUpperCase()).join('');}
+function avatarIdx(n){let h=0;for(let c of n)h=(h*31+c.charCodeAt(0))&0xffff;return h%AVATAR_BG.length;}
+function daysSince(d){if(!d)return null;return Math.floor((Date.now()-new Date(d).getTime())/86400000);}
+function todayStr(){return new Date().toISOString().split('T')[0];}
+function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,6);}
+
+let contacts=[],editingId=null,currentFilter='all',currentView='grid',currentHeat=0,viewingId=null;
+
+let customCompanies=[], interactions=[], jobs=[], aspirations=[];
+function load(){
+  try{contacts=JSON.parse(localStorage.getItem('crm_v4')||'[]');}catch(e){contacts=[];}
+  try{customCompanies=JSON.parse(localStorage.getItem('crm_companies')||'[]');}catch(e){customCompanies=[];}
+  try{interactions=JSON.parse(localStorage.getItem('crm_interactions')||'[]');}catch(e){interactions=[];}
+  try{jobs=JSON.parse(localStorage.getItem('crm_jobs')||'[]');}catch(e){jobs=[];}
+  try{aspirations=JSON.parse(localStorage.getItem('crm_aspirations')||'[]');}catch(e){aspirations=[];}
+}
+function save(){
+  try{localStorage.setItem('crm_v4',JSON.stringify(contacts));}catch(e){}
+  try{localStorage.setItem('crm_companies',JSON.stringify(customCompanies));}catch(e){}
+  try{localStorage.setItem('crm_interactions',JSON.stringify(interactions));}catch(e){}
+  try{localStorage.setItem('crm_jobs',JSON.stringify(jobs));}catch(e){}
+  try{localStorage.setItem('crm_aspirations',JSON.stringify(aspirations));}catch(e){}
+}
+function getCompanies(){
+  const fromContacts=[...new Set(contacts.map(c=>c.company).filter(Boolean))];
+  const all=[...new Set([...fromContacts,...customCompanies])].sort((a,b)=>a.localeCompare(b));
+  return all;
+}
+function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2000);}
+function setHeat(v){currentHeat=v;document.querySelectorAll('.heat-opt').forEach(b=>b.classList.toggle('selected',parseInt(b.dataset.val)<=v));}
+
+function getFiltered(){
+  const q=(document.getElementById('search-input')||{}).value?.toLowerCase()||'';
+  let list=contacts.filter(c=>!q||[c.name,c.company,c.role,c.notes,c.tags].join(' ').toLowerCase().includes(q));
+  if(currentFilter==='all'){}
+  else if(currentFilter==='overdue')list=list.filter(c=>{const d=daysSince(c.date);return d!==null&&d>14&&!['warm','closed'].includes(c.stage);});
+  else if(currentFilter==='owe')list=list.filter(c=>c.owe&&c.owe.trim());
+  else if(currentFilter==='hot')list=list.filter(c=>(c.heat||0)>=4);
+  else if(currentFilter==='alumni')list=list.filter(c=>c.source==='HMC alumni');
+  else list=list.filter(c=>c.stage===currentFilter);
+  const sort=(document.getElementById('sort-select')||{}).value||'overdue';
+  list.sort((a,b)=>{
+    if(sort==='name')return a.name.localeCompare(b.name);
+    if(sort==='heat')return(b.heat||0)-(a.heat||0);
+    if(sort==='stage')return Object.keys(STAGES).indexOf(a.stage)-Object.keys(STAGES).indexOf(b.stage);
+    if(sort==='recent')return(b._created||0)-(a._created||0);
+    const da=daysSince(a.date)||0,db=daysSince(b.date)||0;
+    const oa=da>14&&!['warm','closed'].includes(a.stage)?1:0,ob=db>14&&!['warm','closed'].includes(b.stage)?1:0;
+    if(oa!==ob)return ob-oa;
+    return db-da;
+  });
+  return list;
+}
+
+function renderSidebar(){
+  document.getElementById('today-label').textContent=new Date().toLocaleDateString('en-US',{weekday:'long',month:'short',day:'numeric'});
+  const total=contacts.length;
+  const owed=contacts.filter(c=>c.owe&&c.owe.trim()).length;
+  const overdue=contacts.filter(c=>{const d=daysSince(c.date);return d!==null&&d>14&&!['warm','closed'].includes(c.stage);}).length;
+  const warm=contacts.filter(c=>c.stage==='warm').length;
+  document.getElementById('sidebar-stats').innerHTML=`
+    <div class="stat-row"><span class="stat-key">contacts</span><span class="stat-val">${total}</span></div>
+    <div class="stat-row"><span class="stat-key">i owe them</span><span class="stat-val red">${owed}</span></div>
+    <div class="stat-row"><span class="stat-key">overdue</span><span class="stat-val ${overdue>0?'amber':''}">${overdue}</span></div>
+    <div class="stat-row"><span class="stat-key">warm</span><span class="stat-val green">${warm}</span></div>
+  `;
+  document.getElementById('cnt-all').textContent=total;
+  Object.keys(STAGES).forEach(s=>{const el=document.getElementById('cnt-'+s);if(el)el.textContent=contacts.filter(c=>c.stage===s).length;});
+  document.getElementById('cnt-overdue').textContent=overdue;
+  document.getElementById('cnt-owe').textContent=owed;
+  document.getElementById('cnt-hot').textContent=contacts.filter(c=>(c.heat||0)>=4).length;
+  document.getElementById('cnt-alumni').textContent=contacts.filter(c=>c.source==='HMC alumni').length;
+  const icnt = document.getElementById('cnt-interactions');
+  if(icnt) icnt.textContent=interactions.length;
+  const jcnt = document.getElementById('cnt-jobs');
+  if(jcnt) jcnt.textContent=jobs.length;  const nb=document.getElementById('nudge-bar');
+  if(overdue>0){nb.innerHTML=`<span>⚠ ${overdue} contact${overdue>1?'s':''} overdue — <a onclick="setFilter('overdue',null)">view</a></span>`;nb.className='nudge-bar';}
+  else{nb.innerHTML='';nb.className='';}
+}
+
+function cardHTML(c,i){
+  const ai=avatarIdx(c.name);
+  const stage=STAGES[c.stage]||STAGES['identified'];
+  const d=daysSince(c.date);
+  const overdue=d!==null&&d>14&&!['warm','closed'].includes(c.stage);
+  const dateLabel=d===null?'no date':(d===0?'today':(d===1?'yesterday':d+'d ago'));
+  const heat=c.heat||0;
+  const heatDots=[1,2,3,4,5].map(n=>`<div class="heat-dot${n<=heat?' lit':''}"></div>`).join('');
+  const oweHTML=c.owe?`<div class="badge owe">↑ ${c.owe.length>35?c.owe.slice(0,35)+'…':c.owe}</div>`:'';
+  const offeredHTML=c.offered?`<div class="badge offered">↓ ${c.offered.length>35?c.offered.slice(0,35)+'…':c.offered}</div>`:'';
+  const askHTML=c.ask&&c.ask!==''?`<div class="badge heat">ask: ${c.ask.replace(/-/g,' ')}</div>`:'';
+  const tagsHTML=(c.tags||'').split(',').filter(t=>t.trim()).slice(0,3).map(t=>`<span class="tag">${t.trim()}</span>`).join('');
+  return`<div class="card${overdue?' overdue':''}" style="--stage-color:${stage.color};animation-delay:${i*0.03}s" onclick="openDetail('${c.id}')">
+    <div class="card-header">
+      <div style="display:flex;align-items:center;gap:10px;flex:1;min-width:0;">
+        <div class="card-avatar" style="background:${AVATAR_BG[ai]};color:${AVATAR_FG[ai]};">${initials(c.name)}</div>
+        <div class="card-info">
+          <div class="card-name">${c.name}</div>
+          <div class="card-meta">${[c.role,c.company].filter(Boolean).join(' @ ')}</div>
+        </div>
+      </div>
+      <span class="stage-pill" style="background:${stage.color}18;color:${stage.color};border:1px solid ${stage.color}30;">${stage.label}</span>
+    </div>
+    <div class="heat-bar">${heatDots}</div>
+    ${(c.owe||c.offered||c.ask)?`<div class="card-badges" style="margin-top:8px;">${oweHTML}${offeredHTML}${askHTML}</div>`:''}
+    <div style="margin-top:6px;">${tagsHTML}</div>
+    ${c.notes?`<div class="card-notes" style="margin-top:8px;">${c.notes}</div>`:''}
+    <div class="card-footer" style="margin-top:10px;">
+      <span class="card-date${overdue?' urgent':''}">${dateLabel}${c.source?' · '+c.source:''}</span>
+      <div class="card-actions">
+        <button class="icon-btn" title="mark contacted" onclick="event.stopPropagation();quickMark('${c.id}')"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></button>
+        <button class="icon-btn" title="edit" onclick="event.stopPropagation();openEditModal('${c.id}')"><svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
+      </div>
+    </div>
+  </div>`;
+}
+
+function renderGrid(list){
+  if(list.length===0)return`<div class="empty-state"><span class="big">∅</span><p>${contacts.length===0?'no contacts yet — add your first one.':'no contacts match this filter.'}</p></div>`;
+  return`<div class="contact-grid">${list.map((c,i)=>cardHTML(c,i)).join('')}</div>`;
+}
+
+function renderPipeline(){
+  return`<div class="pipeline">${Object.keys(STAGES).map(s=>{
+    const sc=contacts.filter(c=>c.stage===s);
+    const stg=STAGES[s];
+    return`<div class="pipeline-col">
+      <div class="pipeline-col-head" style="color:${stg.color};">${stg.label}<span class="pcnt">${sc.length}</span></div>
+      ${sc.map(c=>`<div class="pipeline-card" style="--stage-color:${stg.color};" onclick="openDetail('${c.id}')">
+        <div class="pipeline-card-name">${c.name}</div>
+        <div class="pipeline-card-meta">${c.company||'—'}</div>
+        ${c.owe?`<div class="pipeline-card-owe">↑ ${c.owe.slice(0,30)}</div>`:''}
+      </div>`).join('')}
+    </div>`;
+  }).join('')}</div>`;
+}
+
+function renderInteractions(){
+  renderSidebar();
+  const sorted = [...interactions].sort((a,b)=>b.ts-a.ts);
+  const byDate = {};
+  sorted.forEach(ix=>{
+    const d = new Date(ix.ts);
+    const label = d.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric'});
+    if(!byDate[label]) byDate[label]=[];
+    byDate[label].push(ix);
+  });
+  const emptyHTML = `<div class="empty-state"><span class="big">∅</span><p>no interactions logged yet.<br>add one from any contact's detail card.</p></div>`;
+  const listHTML = Object.entries(byDate).map(([dateLabel, ixs])=>`
+    <div style="margin-bottom:24px;">
+      <div style="font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--text3);margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--border);">${dateLabel}</div>
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        ${ixs.map(ix=>{
+          const c = contacts.find(x=>x.id===ix.cid);
+          if(!c) return '';
+          const ai = avatarIdx(c.name);
+          const stage = STAGES[c.stage]||STAGES['identified'];
+          const time = new Date(ix.ts).toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});
+          const typeColors = {call:'#6ab87a',email:'#5a8fc8',text:'#8f7ac8',meeting:'#c89a4a',linkedin:'#4ab8c8',other:'#5a5650'};
+          const tc = typeColors[ix.type]||typeColors.other;
+          return `<div style="background:var(--bg1);border:1px solid var(--border);border-radius:var(--radius2);padding:14px 16px;display:flex;gap:14px;cursor:pointer;transition:all 0.15s;" onmouseenter="this.style.borderColor='var(--border2)';this.style.background='var(--bg2)'" onmouseleave="this.style.borderColor='var(--border)';this.style.background='var(--bg1)'" onclick="openDetail('${c.id}')">
+            <div style="display:flex;flex-direction:column;align-items:center;gap:6px;padding-top:2px;">
+              <div style="width:32px;height:32px;border-radius:50%;background:${AVATAR_BG[ai]};color:${AVATAR_FG[ai]};display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:500;flex-shrink:0;">${initials(c.name)}</div>
+              <div style="width:1px;flex:1;background:var(--border);min-height:8px;"></div>
+            </div>
+            <div style="flex:1;min-width:0;">
+              <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:4px;">
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <span style="font-size:13px;font-weight:500;color:var(--text);">${c.name}</span>
+                  <span style="font-size:10px;color:var(--text3);">${c.company||c.role||''}</span>
+                </div>
+                <div style="display:flex;align-items:center;gap:6px;flex-shrink:0;">
+                  <span style="font-size:9px;padding:2px 7px;border-radius:10px;background:${tc}18;color:${tc};border:1px solid ${tc}30;text-transform:uppercase;letter-spacing:0.06em;">${ix.type}</span>
+                  <span style="font-size:10px;color:var(--text3);">${time}</span>
+                  <button onclick="event.stopPropagation();deleteInteraction('${ix.id}')" style="background:transparent;border:none;color:var(--text3);cursor:pointer;font-size:14px;line-height:1;padding:0 2px;opacity:0.5;" onmouseenter="this.style.opacity=1;this.style.color='var(--danger)'" onmouseleave="this.style.opacity=0.5;this.style.color='var(--text3)'">×</button>
+                </div>
+              </div>
+              ${ix.notes?`<div style="font-size:12px;color:var(--text2);line-height:1.6;margin-top:4px;">${ix.notes}</div>`:''}
+            </div>
+          </div>`;
+        }).join('')}
+      </div>
+    </div>`).join('');
+
+  document.getElementById('main-content').innerHTML=`
+    <div class="section-head">
+      <span class="section-title">interactions</span>
+      <span class="section-sub">${interactions.length} logged</span>
+    </div>
+    ${sorted.length===0 ? emptyHTML : listHTML}
+  `;
+}
+
+function quickLogInteraction(cid, type){
+  const notesEl = document.getElementById('ix-notes-'+cid);
+  const notes = notesEl ? notesEl.value.trim() : '';
+  const ix = { id: uid(), cid, type, notes, ts: Date.now() };
+  interactions.unshift(ix);
+  // also update last contact date on the contact
+  const c = contacts.find(x=>x.id===cid);
+  if(c){ c.date = todayStr(); c._updated = Date.now(); }
+  save();
+  // refresh detail modal to show new interaction
+  openDetail(cid);
+  toast(type + ' logged');
+}
+
+function deleteInteraction(id){
+  interactions = interactions.filter(x=>x.id!==id);
+  save(); render(); toast('interaction deleted');
+}
+
+
+const JOB_STAGES={
+  'wishlist':    {label:'wishlist',    color:'#5a5650'},
+  'researching': {label:'researching', color:'#5a8fc8'},
+  'applied':     {label:'applied',     color:'#8f7ac8'},
+  'phone-screen':{label:'phone screen',color:'#c89a4a'},
+  'interview':   {label:'interview',   color:'#c87a8f'},
+  'offer':       {label:'offer',       color:'#6ab87a'},
+  'rejected':    {label:'rejected',    color:'#c8614a'},
+  'accepted':    {label:'accepted',    color:'#c8b97a'},
+};
+
+function renderJobs(){
+  renderSidebar();
+  const byStage={};
+  Object.keys(JOB_STAGES).forEach(s=>byStage[s]=[]);
+  jobs.forEach(j=>{ if(byStage[j.stage]) byStage[j.stage].push(j); });
+  const active=jobs.filter(j=>!['rejected','accepted'].includes(j.stage));
+  const applied=jobs.filter(j=>['applied','phone-screen','interview','offer'].includes(j.stage));
+
+  document.getElementById('main-content').innerHTML=`
+    <div class="section-head">
+      <span class="section-title">job pipeline</span>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <span class="section-sub">${jobs.length} tracked · ${applied.length} active</span>
+        <button class="btn primary" style="width:auto;padding:5px 12px;" onclick="openJobModal(null)">
+          <svg viewBox="0 0 24 24" style="width:11px;height:11px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>add role
+        </button>
+      </div>
+    </div>
+    ${jobs.length===0?`<div class="empty-state"><span class="big">∅</span><p>no jobs tracked yet.<br>add roles you're interested in or have applied to.</p></div>`:`
+    <div style="display:flex;flex-direction:column;gap:24px;">
+      ${Object.entries(JOB_STAGES).map(([s,stg])=>{
+        const sj=byStage[s];
+        if(!sj.length) return '';
+        return `<div>
+          <div style="font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:${stg.color};margin-bottom:10px;display:flex;align-items:center;gap:8px;">
+            ${stg.label} <span style="background:${stg.color}18;color:${stg.color};border:1px solid ${stg.color}30;font-size:9px;padding:1px 6px;border-radius:10px;">${sj.length}</span>
+          </div>
+          <div class="job-grid">
+            ${sj.map(j=>jobCardHTML(j)).join('')}
+          </div>
+        </div>`;
+      }).join('')}
+    </div>`}
+  `;
+}
+
+function jobCardHTML(j){
+  const stg=JOB_STAGES[j.stage]||JOB_STAGES['wishlist'];
+  const linked=contacts.filter(c=>c.company&&j.company&&c.company.toLowerCase()===j.company.toLowerCase());
+  const deadline=j.deadline?`<span style="font-size:10px;color:${new Date(j.deadline)<new Date()?'var(--danger)':'var(--text3)'};">due ${new Date(j.deadline).toLocaleDateString('en-US',{month:'short',day:'numeric'})}</span>`:'';
+  return `<div class="job-card" style="--jstage-color:${stg.color};" onclick="openJobModal('${j.id}')">
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:10px;">
+      <div>
+        <div style="font-size:13px;font-weight:500;color:var(--text);">${j.role}</div>
+        <div style="font-size:11px;color:var(--text2);margin-top:2px;">${j.company||'—'}${j.location?' · '+j.location:''}</div>
+      </div>
+      <span class="job-stage-pill" style="background:${stg.color}18;color:${stg.color};border:1px solid ${stg.color}30;">${stg.label}</span>
+    </div>
+    ${linked.length?`<div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:8px;">${linked.map(c=>`<span onclick="event.stopPropagation();openDetail('${c.id}')" style="font-size:10px;background:rgba(122,159,200,0.1);color:var(--stags);border:1px solid rgba(122,159,200,0.2);border-radius:4px;padding:2px 7px;cursor:pointer;">@${c.name.split(' ')[0]}</span>`).join('')}</div>`:''}
+    ${j.notes?`<div style="font-size:11px;color:var(--text3);line-height:1.5;margin-bottom:8px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">${j.notes}</div>`:''}
+    <div style="display:flex;align-items:center;justify-content:space-between;">${deadline}<span style="font-size:10px;color:var(--text3);">${j.type||''}</span></div>
+  </div>`;
+}
+
+function getLinkedContactsForCompany(name){
+  if(!name) return [];
+  return contacts.filter(c=>c.company&&c.company.toLowerCase()===name.toLowerCase());
+}
+function getLinkedJobsForCompany(name){
+  if(!name) return [];
+  return jobs.filter(j=>j.company&&j.company.toLowerCase()===name.toLowerCase());
+}
+function getLinkedJobsForContact(cid){
+  return jobs.filter(j=>j.linkedContacts&&j.linkedContacts.includes(cid));
+}
+
+function renderAspirations(){
+  renderSidebar();
+  const companyList=aspirations.filter(a=>a.type==='company').sort((a,b)=>a.name.localeCompare(b.name));
+  const roleList=aspirations.filter(a=>a.type==='role').sort((a,b)=>a.name.localeCompare(b.name));
+  document.getElementById('main-content').innerHTML=`
+    <div class="section-head">
+      <span class="section-title">aspirations</span>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <span class="section-sub">${aspirations.length} tracked</span>
+        <button class="btn primary" style="width:auto;padding:5px 12px;" onclick="openAspireModal(null,'company')">
+          <svg viewBox="0 0 24 24" style="width:11px;height:11px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>add company
+        </button>
+        <button class="btn" style="width:auto;padding:5px 12px;" onclick="openAspireModal(null,'role')">
+          <svg viewBox="0 0 24 24" style="width:11px;height:11px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>add role
+        </button>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;">
+      <div>
+        <div style="font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--accent);margin-bottom:12px;padding-bottom:6px;border-bottom:1px solid var(--border);">target companies (${companyList.length})</div>
+        <div style="display:flex;flex-direction:column;gap:8px;">
+          ${companyList.length?companyList.map(a=>aspireCardHTML(a)).join(''):`<div style="font-size:12px;color:var(--text3);padding:16px 0;">none yet</div>`}
+        </div>
+      </div>
+      <div>
+        <div style="font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--accent);margin-bottom:12px;padding-bottom:6px;border-bottom:1px solid var(--border);">target roles & fellowships (${roleList.length})</div>
+        <div style="display:flex;flex-direction:column;gap:8px;">
+          ${roleList.length?roleList.map(a=>aspireCardHTML(a)).join(''):`<div style="font-size:12px;color:var(--text3);padding:16px 0;">none yet</div>`}
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function aspireCardHTML(a){
+  const linkedPeople = a.type==='company' ? getLinkedContactsForCompany(a.name) : [];
+  const linkedJobs   = a.type==='company' ? getLinkedJobsForCompany(a.name) : [];
+  const peopleHTML = linkedPeople.length ? linkedPeople.map(c=>
+    `<span onclick="openDetail('${c.id}')" style="font-size:10px;background:rgba(122,159,200,0.1);color:var(--stags);border:1px solid rgba(122,159,200,0.2);border-radius:4px;padding:2px 7px;cursor:pointer;">@${c.name.split(' ')[0]}</span>`
+  ).join('') : '';
+  const jobsHTML = linkedJobs.length ? linkedJobs.map(j=>
+    `<span onclick="openJobModal('${j.id}')" style="font-size:10px;background:rgba(200,185,122,0.08);color:var(--accent);border:1px solid rgba(200,185,122,0.2);border-radius:4px;padding:2px 7px;cursor:pointer;">${j.role}</span>`
+  ).join('') : '';
+  const hasLinks = peopleHTML||jobsHTML;
+  return `<div class="aspire-card" style="cursor:pointer;" onclick="openAspireModal('${a.id}')">
+    <div style="flex:1;min-width:0;">
+      <div style="font-size:13px;color:var(--text);font-weight:500;margin-bottom:${a.notes||hasLinks?'5px':'0'}">${a.name}</div>
+      ${a.notes?`<div style="font-size:11px;color:var(--text2);line-height:1.5;margin-bottom:${hasLinks?'8px':'0'}">${a.notes}</div>`:''}
+      ${hasLinks?`<div style="display:flex;flex-wrap:wrap;gap:4px;">${peopleHTML}${jobsHTML}</div>`:''}
+    </div>
+    <div style="display:flex;gap:4px;flex-shrink:0;opacity:0;transition:opacity 0.1s;" class="aspire-actions">
+      <button onclick="event.stopPropagation();openAspireModal('${a.id}')" style="background:transparent;border:none;color:var(--text3);cursor:pointer;font-size:12px;font-family:var(--font-mono);">edit</button>
+      <button onclick="event.stopPropagation();deleteAspiration('${a.id}')" style="background:transparent;border:none;color:var(--text3);cursor:pointer;font-size:16px;line-height:1;" onmouseenter="this.style.color='var(--danger)'" onmouseleave="this.style.color='var(--text3)'">×</button>
+    </div>
+  </div>`;
+}
+
+let editingAspireId=null;
+function openAspireModal(id, typeHint){
+  editingAspireId=id;
+  const a=id?aspirations.find(x=>x.id===id):null;
+  const type=a?a.type:(typeHint||'company');
+  const title=id?'edit aspiration':'add aspiration';
+  const overlay=document.createElement('div');
+  overlay.id='aspire-modal-overlay';
+  overlay.style.cssText='display:flex;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:100;align-items:center;justify-content:center;backdrop-filter:blur(2px);';
+  overlay.innerHTML=`
+    <div style="background:var(--bg1);border:1px solid var(--border2);border-radius:var(--radius2);width:500px;max-width:95vw;max-height:90vh;overflow-y:auto;box-shadow:0 24px 80px rgba(0,0,0,0.6);">
+      <div style="padding:20px 24px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:var(--bg1);z-index:1;">
+        <div style="font-family:var(--font-serif);font-size:18px;font-weight:300;font-style:italic;color:var(--text);">${title}</div>
+        <button onclick="document.getElementById('aspire-modal-overlay').remove()" style="background:transparent;border:none;color:var(--text3);cursor:pointer;font-size:20px;line-height:1;padding:2px 6px;">×</button>
+      </div>
+      <div style="padding:20px 24px;">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+          <div class="fg"><label>type</label>
+            <select id="af-type">
+              <option value="company" ${type==='company'?'selected':''}>target company / org</option>
+              <option value="role" ${type==='role'?'selected':''}>target role / fellowship</option>
+            </select>
+          </div>
+          <div class="fg"><label>name *</label><input id="af-name" value="${a?a.name||'':''}" placeholder="${type==='company'?'Skild AI':'Robotics Software Engineer'}" type="text"></div>
+          <div class="fg" style="grid-column:1/-1;"><label>why — notes</label><textarea id="af-notes" style="height:80px;" placeholder="why this company or role, what's interesting, how it fits your path...">${a?a.notes||'':''}</textarea></div>
+          <div class="fg" style="grid-column:1/-1;"><label>priority</label>
+            <select id="af-priority">
+              <option value="dream" ${a&&a.priority==='dream'?'selected':''}>dream — would do anything to get here</option>
+              <option value="high" ${a&&a.priority==='high'?'selected':''}>high — strong target</option>
+              <option value="medium" ${(!a||!a.priority||a.priority==='medium')?'selected':''}>medium — worth pursuing</option>
+              <option value="stretch" ${a&&a.priority==='stretch'?'selected':''}>stretch — long shot but interesting</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <div style="padding:16px 24px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:flex-end;gap:8px;position:sticky;bottom:0;background:var(--bg1);">
+        ${id?`<button class="btn danger" style="margin-right:auto;" onclick="deleteAspiration('${id}');document.getElementById('aspire-modal-overlay').remove()">delete</button>`:''}
+        <button class="btn" onclick="document.getElementById('aspire-modal-overlay').remove()">cancel</button>
+        <button class="btn primary" onclick="saveAspiration()">save</button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(overlay);
+  overlay.addEventListener('click',e=>{if(e.target===overlay)overlay.remove();});
+  document.getElementById('af-name').focus();
+}
+
+function saveAspiration(){
+  const name=document.getElementById('af-name').value.trim();
+  if(!name){toast('name required');return;}
+  const data={
+    id:editingAspireId||uid(),
+    type:document.getElementById('af-type').value,
+    name,
+    notes:document.getElementById('af-notes').value.trim(),
+    priority:document.getElementById('af-priority').value,
+    _created:editingAspireId?(aspirations.find(x=>x.id===editingAspireId)||{})._created||Date.now():Date.now(),
+    _updated:Date.now(),
+  };
+  if(editingAspireId){const i=aspirations.findIndex(x=>x.id===editingAspireId);if(i>-1)aspirations[i]=data;}
+  else aspirations.push(data);
+  document.getElementById('aspire-modal-overlay').remove();
+  save();render();toast(editingAspireId?'updated':'added');
+}
+
+function deleteAspiration(id){
+  aspirations=aspirations.filter(x=>x.id!==id);
+  const ov=document.getElementById('aspire-modal-overlay');
+  if(ov)ov.remove();
+  save();render();toast('removed');
+}
+
+let editingJobId=null;
+function openJobModal(id){
+  editingJobId=id;
+  const j=id?jobs.find(x=>x.id===id):null;
+  const title=id?'edit role':'add role';
+  // build linked contacts options
+  const contactOpts=contacts.map(c=>`<option value="${c.id}" ${j&&j.linkedContacts&&j.linkedContacts.includes(c.id)?'selected':''}>${c.name}${c.company?' @ '+c.company:''}</option>`).join('');
+  document.getElementById('main-content').insertAdjacentHTML('beforeend',`
+    <div id="job-modal-overlay" style="display:flex;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:100;align-items:center;justify-content:center;backdrop-filter:blur(2px);">
+      <div style="background:var(--bg1);border:1px solid var(--border2);border-radius:var(--radius2);width:540px;max-width:95vw;max-height:90vh;overflow-y:auto;box-shadow:0 24px 80px rgba(0,0,0,0.6);">
+        <div style="padding:20px 24px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:var(--bg1);z-index:1;">
+          <div style="font-family:var(--font-serif);font-size:18px;font-weight:300;font-style:italic;color:var(--text);">${title}</div>
+          <button onclick="document.getElementById('job-modal-overlay').remove()" style="background:transparent;border:none;color:var(--text3);cursor:pointer;font-size:20px;line-height:1;padding:2px 6px;">×</button>
+        </div>
+        <div style="padding:20px 24px;">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+            <div class="fg"><label>role / title *</label><input id="jf-role" value="${j?j.role||'':''}" placeholder="Robotics Software Engineer" type="text"></div>
+            <div class="fg"><label>company</label><input id="jf-company" value="${j?j.company||'':''}" placeholder="Skild AI" type="text"></div>
+            <div class="fg"><label>stage</label>
+              <select id="jf-stage">
+                ${Object.entries(JOB_STAGES).map(([s,stg])=>`<option value="${s}" ${j&&j.stage===s?'selected':''}>${stg.label}</option>`).join('')}
+              </select>
+            </div>
+            <div class="fg"><label>job type</label>
+              <select id="jf-type">
+                <option value="full-time" ${j&&j.type==='full-time'?'selected':''}>full-time</option>
+                <option value="internship" ${j&&j.type==='internship'?'selected':''}>internship</option>
+                <option value="co-op" ${j&&j.type==='co-op'?'selected':''}>co-op</option>
+                <option value="contract" ${j&&j.type==='contract'?'selected':''}>contract</option>
+                <option value="gap semester" ${j&&j.type==='gap semester'?'selected':''}>gap semester</option>
+              </select>
+            </div>
+            <div class="fg"><label>location</label><input id="jf-location" value="${j?j.location||'':''}" placeholder="San Francisco, CA / Remote" type="text"></div>
+            <div class="fg"><label>deadline</label><input id="jf-deadline" value="${j?j.deadline||'':''}" type="date"></div>
+            <div class="fg" style="grid-column:1/-1;"><label>job posting url</label><input id="jf-url" value="${j?j.url||'':''}" placeholder="https://..." type="text"></div>
+            <div class="fg" style="grid-column:1/-1;"><label>linked contacts (people you know there)</label>
+              <select id="jf-contacts" multiple style="height:80px;">${contactOpts}</select>
+              <div style="font-size:10px;color:var(--text3);margin-top:3px;">hold cmd/ctrl to select multiple</div>
+            </div>
+            <div class="fg" style="grid-column:1/-1;"><label>notes</label><textarea id="jf-notes" style="height:80px;" placeholder="why this role, what's interesting, prep notes...">${j?j.notes||'':''}</textarea></div>
+          </div>
+        </div>
+        <div style="padding:16px 24px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:flex-end;gap:8px;position:sticky;bottom:0;background:var(--bg1);">
+          ${id?`<button class="btn danger" style="margin-right:auto;" onclick="deleteJob('${id}')">delete</button>`:''}
+          <button class="btn" onclick="document.getElementById('job-modal-overlay').remove()">cancel</button>
+          <button class="btn primary" onclick="saveJob()">save role</button>
+        </div>
+      </div>
+    </div>
+  `);
+  document.getElementById('job-modal-overlay').addEventListener('click',e=>{if(e.target===document.getElementById('job-modal-overlay'))document.getElementById('job-modal-overlay').remove();});
+}
+
+function saveJob(){
+  const role=document.getElementById('jf-role').value.trim();
+  if(!role){toast('role name required');return;}
+  const sel=document.getElementById('jf-contacts');
+  const linkedContacts=Array.from(sel.selectedOptions).map(o=>o.value);
+  const data={
+    id:editingJobId||uid(),role,
+    company:document.getElementById('jf-company').value.trim(),
+    stage:document.getElementById('jf-stage').value,
+    type:document.getElementById('jf-type').value,
+    location:document.getElementById('jf-location').value.trim(),
+    deadline:document.getElementById('jf-deadline').value,
+    url:document.getElementById('jf-url').value.trim(),
+    notes:document.getElementById('jf-notes').value.trim(),
+    linkedContacts,
+    _created:editingJobId?(jobs.find(x=>x.id===editingJobId)||{})._created||Date.now():Date.now(),
+    _updated:Date.now(),
+  };
+  if(editingJobId){const i=jobs.findIndex(x=>x.id===editingJobId);if(i>-1)jobs[i]=data;}
+  else jobs.unshift(data);
+  document.getElementById('job-modal-overlay').remove();
+  save(); render(); toast(editingJobId?'role updated':'role added');
+}
+
+function deleteJob(id){
+  jobs=jobs.filter(x=>x.id!==id);
+  document.getElementById('job-modal-overlay').remove();
+  save(); render(); toast('role deleted');
+}
+
+function scratchCmd(cmd){
+  const area = document.getElementById('scratchpad-area');
+  if(!area) return;
+  area.focus();
+  if(['h1','h2','h3'].includes(cmd)){
+    document.execCommand('formatBlock',false,cmd);
+  } else {
+    document.execCommand(cmd,false,null);
+  }
+  localStorage.setItem('crm_scratchpad_html', area.innerHTML);
+}
+
+function insertDivider(){
+  const area = document.getElementById('scratchpad-area');
+  if(!area) return;
+  area.focus();
+  document.execCommand('insertHTML',false,'<hr style="border:none;border-top:1px solid var(--border2);margin:12px 0;">');
+  localStorage.setItem('crm_scratchpad_html', area.innerHTML);
+}
+
+function renderScratchpad(){
+  renderSidebar();
+  document.getElementById('main-content').innerHTML=`
+    <div class="section-head">
+      <span class="section-title">scratchpad</span>
+      <span class="section-sub" id="scratch-status">type @ for contacts · # for companies</span>
+    </div>
+    <div class="scratch-toolbar">
+      <button class="tb-btn" onclick="scratchCmd('h1')" title="Big heading"><b>H1</b></button>
+      <button class="tb-btn" onclick="scratchCmd('h2')" title="Section heading"><b>H2</b></button>
+      <button class="tb-btn" onclick="scratchCmd('h3')" title="Sub-heading"><b>H3</b></button>
+      <div class="tb-sep"></div>
+      <button class="tb-btn" onclick="scratchCmd('bold')" title="Bold"><svg viewBox="0 0 24 24"><path d="M6 4h8a4 4 0 0 1 4 4 4 4 0 0 1-4 4H6z"/><path d="M6 12h9a4 4 0 0 1 4 4 4 4 0 0 1-4 4H6z"/></svg></button>
+      <button class="tb-btn" onclick="scratchCmd('italic')" title="Italic"><svg viewBox="0 0 24 24"><line x1="19" y1="4" x2="10" y2="4"/><line x1="14" y1="20" x2="5" y2="20"/><line x1="15" y1="4" x2="9" y2="20"/></svg></button>
+      <button class="tb-btn" onclick="scratchCmd('strikeThrough')" title="Strike through — mark as done"><s>done</s></button>
+      <div class="tb-sep"></div>
+      <button class="tb-btn" onclick="scratchCmd('insertUnorderedList')" title="Bullet list">• list</button>
+      <div class="tb-sep"></div>
+      <button class="tb-btn" onclick="insertDivider()" title="Divider">— divider</button>
+    </div>
+    <div style="position:relative;">
+      <div id="scratchpad-area" contenteditable="true" spellcheck="true" placeholder="notes, reminders, ideas... type @ to link a contact" style="width:100%;min-height:calc(100vh - 180px);background:var(--bg1);border:1px solid var(--border);border-radius:var(--radius2);padding:16px;color:var(--text);font-family:var(--font-mono);font-size:13px;line-height:1.9;outline:none;white-space:pre-wrap;word-break:break-word;"></div>
+      <div id="at-dropdown" style="display:none;position:fixed;background:var(--bg2);border:1px solid var(--border2);border-radius:var(--radius);min-width:220px;z-index:200;box-shadow:0 8px 32px rgba(0,0,0,0.5);overflow:hidden;"></div>
+    </div>
+  `;
+
+  const area = document.getElementById('scratchpad-area');
+  const drop = document.getElementById('at-dropdown');
+
+  // restore saved HTML
+  const saved = localStorage.getItem('crm_scratchpad_html')||'';
+  if(saved) area.innerHTML = saved;
+  else area.innerHTML = '';
+
+  // place cursor at end
+  const range = document.createRange();
+  const sel = window.getSelection();
+  range.selectNodeContents(area);
+  range.collapse(false);
+  sel.removeAllRanges();
+  sel.addRange(range);
+  area.focus();
+
+  // delegated click handler — works for both freshly created and restored chips
+  area.addEventListener('click', e=>{
+    const chip = e.target.closest('.at-chip');
+    const coChip = e.target.closest('.co-chip');
+    if(chip){
+      const cid = chip.dataset.cid;
+      if(cid) openDetail(cid);
+    } else if(coChip){
+      const co = coChip.dataset.co;
+      if(co){
+        const matched = contacts.filter(c=>c.company===co);
+        if(matched.length===1){ openDetail(matched[0].id); }
+        else if(matched.length>1){ showCompanyPopup(co, matched, coChip); }
+      }
+    }
+  });
+
+  let atStart = null;
+  let debounce;
+
+  function saveContent(){
+    clearTimeout(debounce);
+    debounce = setTimeout(()=>{
+      localStorage.setItem('crm_scratchpad_html', area.innerHTML);
+      const el = document.getElementById('scratch-status');
+      if(el){ el.textContent='saved'; setTimeout(()=>{ if(el) el.textContent='type @ to mention a contact'; },1500); }
+    }, 600);
+  }
+
+  function closeDrop(){ drop.style.display='none'; atStart=null; }
+
+  function getAtQuery(){
+    const sel = window.getSelection();
+    if(!sel.rangeCount) return null;
+    const range = sel.getRangeAt(0);
+    const node = range.startContainer;
+    if(node.nodeType !== Node.TEXT_NODE) return null;
+    const text = node.textContent.slice(0, range.startOffset);
+    const atIdx = text.lastIndexOf('@');
+    if(atIdx === -1) return null;
+    // make sure nothing between @ and cursor closes the mention
+    const between = text.slice(atIdx+1);
+    if(between.includes(' ') && between.trim().length > 8) return null;
+    return { query: between.toLowerCase(), node, atIdx };
+  }
+
+  function showDrop(query, node, atIdx){
+    const matches = contacts.filter(c=>c.name.toLowerCase().includes(query)).slice(0,6);
+    if(!matches.length){ closeDrop(); return; }
+
+    // position near cursor
+    const sel = window.getSelection();
+    if(!sel.rangeCount) return;
+    const rect = sel.getRangeAt(0).getBoundingClientRect();
+    drop.style.top = (rect.bottom + 6) + 'px';
+    drop.style.left = rect.left + 'px';
+    drop.style.display = 'block';
+    atStart = { node, atIdx };
+
+    drop.innerHTML = matches.map((c,i)=>`
+      <div class="at-opt" data-id="${c.id}" style="padding:8px 14px;cursor:pointer;font-size:12px;color:var(--text2);display:flex;align-items:center;gap:10px;${i===0?'background:var(--bg3);color:var(--text);':''}">
+        <span style="font-size:11px;font-weight:500;color:var(--text);">${c.name}</span>
+        <span style="font-size:10px;color:var(--text3);">${c.company||c.role||''}</span>
+      </div>`).join('');
+
+    drop.querySelectorAll('.at-opt').forEach(opt=>{
+      opt.addEventListener('mouseenter',()=>{ drop.querySelectorAll('.at-opt').forEach(o=>{ o.style.background=''; o.style.color='var(--text2)'; }); opt.style.background='var(--bg3)'; opt.style.color='var(--text)'; });
+      opt.addEventListener('mousedown', e=>{
+        e.preventDefault();
+        insertMention(c.id, c.name, atStart);
+        closeDrop();
+      });
+      // find the contact for this opt
+      opt.addEventListener('mousedown', e=>{
+        e.preventDefault();
+        const cid = opt.dataset.id;
+        const contact = contacts.find(x=>x.id===cid);
+        if(contact && atStart) insertMention(cid, contact.name, atStart);
+        closeDrop();
+      });
+    });
+  }
+
+  function insertMention(cid, name, pos){
+    if(!pos) return;
+    const { node, atIdx } = pos;
+    const sel = window.getSelection();
+    const curOffset = sel.getRangeAt(0).startOffset;
+
+    // delete from @ to cursor in the text node
+    node.textContent = node.textContent.slice(0, atIdx) + node.textContent.slice(curOffset);
+
+    // create chip
+    const chip = document.createElement('span');
+    chip.className = 'at-chip';
+    chip.contentEditable = 'false';
+    chip.dataset.cid = cid;
+    chip.textContent = '@' + name;
+    chip.style.cssText = 'display:inline-block;background:rgba(122,159,200,0.12);color:var(--stags);border:1px solid rgba(122,159,200,0.25);border-radius:4px;padding:1px 7px;font-size:12px;cursor:pointer;margin:0 2px;user-select:none;';
+
+
+    // insert chip after the text node
+    const parent = node.parentNode;
+    const nextSib = node.nextSibling;
+    if(nextSib) parent.insertBefore(chip, nextSib);
+    else parent.appendChild(chip);
+
+    // add a space after chip
+    const space = document.createTextNode(' ');
+    if(chip.nextSibling) parent.insertBefore(space, chip.nextSibling);
+    else parent.appendChild(space);
+
+    // move cursor after space
+    const newRange = document.createRange();
+    newRange.setStartAfter(space);
+    newRange.collapse(true);
+    sel.removeAllRanges();
+    sel.addRange(newRange);
+
+    saveContent();
+  }
+
+  function getHashQuery(){
+    const sel = window.getSelection();
+    if(!sel.rangeCount) return null;
+    const range = sel.getRangeAt(0);
+    const node = range.startContainer;
+    if(node.nodeType !== Node.TEXT_NODE) return null;
+    const text = node.textContent.slice(0, range.startOffset);
+    const hIdx = text.lastIndexOf('#');
+    if(hIdx === -1) return null;
+    const between = text.slice(hIdx+1);
+    if(between.includes(' ') && between.trim().length > 12) return null;
+    return { query: between.toLowerCase(), node, hIdx };
+  }
+
+  function showCompanyDrop(query, node, hIdx){
+    const matches = getCompanies().filter(co=>co.toLowerCase().includes(query)).slice(0,6);
+    if(!matches.length){ closeDrop(); return; }
+    const sel = window.getSelection();
+    if(!sel.rangeCount) return;
+    const rect = sel.getRangeAt(0).getBoundingClientRect();
+    drop.style.top = (rect.bottom + 6) + 'px';
+    drop.style.left = rect.left + 'px';
+    drop.style.display = 'block';
+    atStart = { node, atIdx: hIdx, type:'company' };
+    drop.innerHTML = matches.map((co,i)=>`
+      <div class="at-opt" data-co="${co.replace(/"/g,'&quot;')}" style="padding:8px 14px;cursor:pointer;font-size:12px;color:var(--text2);display:flex;align-items:center;gap:10px;${i===0?'background:var(--bg3);color:var(--text);':''}">
+        <span style="font-size:14px;">🏢</span>
+        <span style="font-size:12px;font-weight:500;color:var(--text);">${co}</span>
+        <span style="font-size:10px;color:var(--text3);">${contacts.filter(c=>c.company===co).map(c=>c.name.split(' ')[0]).slice(0,3).join(', ')}</span>
+      </div>`).join('');
+    drop.querySelectorAll('.at-opt').forEach(opt=>{
+      opt.addEventListener('mouseenter',()=>{ drop.querySelectorAll('.at-opt').forEach(o=>{o.style.background='';o.style.color='var(--text2)';}); opt.style.background='var(--bg3)'; opt.style.color='var(--text)'; });
+      opt.addEventListener('mousedown', e=>{
+        e.preventDefault();
+        const co = opt.dataset.co;
+        if(atStart) insertCompanyChip(co, atStart);
+        closeDrop();
+      });
+    });
+  }
+
+  function insertCompanyChip(co, pos){
+    if(!pos) return;
+    const { node, atIdx } = pos;
+    const sel = window.getSelection();
+    const curOffset = sel.getRangeAt(0).startOffset;
+    node.textContent = node.textContent.slice(0, atIdx) + node.textContent.slice(curOffset);
+    const chip = document.createElement('span');
+    chip.className = 'co-chip';
+    chip.contentEditable = 'false';
+    chip.dataset.co = co;
+    chip.textContent = '#' + co;
+    chip.style.cssText = 'display:inline-block;background:rgba(200,185,122,0.1);color:var(--accent);border:1px solid rgba(200,185,122,0.25);border-radius:4px;padding:1px 7px;font-size:12px;cursor:pointer;margin:0 2px;user-select:none;';
+
+    const parent = node.parentNode;
+    const nextSib = node.nextSibling;
+    if(nextSib) parent.insertBefore(chip, nextSib);
+    else parent.appendChild(chip);
+    const space = document.createTextNode('\u00A0');
+    if(chip.nextSibling) parent.insertBefore(space, chip.nextSibling);
+    else parent.appendChild(space);
+    const newRange = document.createRange();
+    newRange.setStartAfter(space);
+    newRange.collapse(true);
+    sel.removeAllRanges();
+    sel.addRange(newRange);
+    saveContent();
+  }
+
+  area.addEventListener('input', ()=>{
+    saveContent();
+    const atInfo = getAtQuery();
+    if(atInfo){ atStart = { node: atInfo.node, atIdx: atInfo.atIdx, type:'contact' }; showDrop(atInfo.query, atInfo.node, atInfo.atIdx); return; }
+    const hashInfo = getHashQuery();
+    if(hashInfo){ showCompanyDrop(hashInfo.query, hashInfo.node, hashInfo.hIdx); return; }
+    closeDrop();
+  });
+
+  area.addEventListener('keydown', e=>{
+    if(drop.style.display==='none') return;
+    const opts = drop.querySelectorAll('.at-opt');
+    const active = drop.querySelector('.at-opt[style*="var(--bg3)"]');
+    const idx = Array.from(opts).indexOf(active);
+    if(e.key==='ArrowDown'){ e.preventDefault(); const next=opts[(idx+1)%opts.length]; opts.forEach(o=>{o.style.background='';o.style.color='var(--text2)';}); next.style.background='var(--bg3)'; next.style.color='var(--text)'; }
+    else if(e.key==='ArrowUp'){ e.preventDefault(); const prev=opts[(idx-1+opts.length)%opts.length]; opts.forEach(o=>{o.style.background='';o.style.color='var(--text2)';}); prev.style.background='var(--bg3)'; prev.style.color='var(--text)'; }
+    else if(e.key==='Enter'||e.key==='Tab'){
+      e.preventDefault();
+      const sel = active||opts[0];
+      if(!sel||!atStart){ closeDrop(); return; }
+      if(atStart.type==='company'){
+        const co = sel.dataset.co; if(co) insertCompanyChip(co, atStart);
+      } else {
+        const cid=sel.dataset.id; const c=contacts.find(x=>x.id===cid); if(c) insertMention(cid,c.name,atStart);
+      }
+      closeDrop();
+    }
+    else if(e.key==='Escape') closeDrop();
+  });
+
+  document.addEventListener('click', e=>{ if(!drop.contains(e.target)&&e.target!==area) closeDrop(); }, {once:false});
+}
+
+function render(){
+  renderSidebar();
+  if(currentFilter==='scratchpad'){renderScratchpad();return;}
+  if(currentFilter==='interactions'){renderInteractions();return;}
+  if(currentFilter==='jobs'){renderJobs();return;}
+  if(currentFilter==='aspirations'){renderAspirations();return;}
+  const list=getFiltered();
+  const isStags=currentFilter==='stags';
+  const filterName=currentFilter==='all'?'all contacts':currentFilter;
+  document.getElementById('main-content').innerHTML=`
+    <div class="section-head">
+      <span class="section-title${isStags?' stags-section-title':''}">${isStags?' ':''} ${filterName}</span>
+      <span class="section-sub">${list.length} contact${list.length!==1?'s':''}</span>
+    </div>
+    ${currentView==='pipeline'?renderPipeline():renderGrid(list)}`;
+}
+
+function setFilter(f,el){
+  currentFilter=f;
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  if(el)el.classList.add('active');
+  else{const ni=document.querySelector(`[data-view="${f}"]`);if(ni)ni.classList.add('active');}
+  render();
+}
+
+function setView(v,btn){
+  currentView=v;
+  document.querySelectorAll('.vt-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  render();
+}
+
+function openAddModal(){
+  editingId=null;
+  document.getElementById('modal-title-text').textContent='add contact';
+  document.getElementById('delete-btn').style.display='none';
+  ['f-name','f-company','f-role','f-linkedin','f-email','f-owe','f-offered','f-notes','f-tags'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('f-stage').value='identified';
+  document.getElementById('f-source').value='LinkedIn';
+  document.getElementById('f-method').value='LinkedIn';
+  document.getElementById('f-ask').value='';
+  document.getElementById('f-date').value='';
+  currentHeat=0;
+  document.querySelectorAll('.heat-opt').forEach(b=>b.classList.remove('selected'));
+  document.getElementById('contact-modal').classList.add('open');
+}
+
+function openEditModal(id){
+  editingId=id;
+  const c=contacts.find(x=>x.id===id);if(!c)return;
+  document.getElementById('modal-title-text').textContent='edit contact';
+  document.getElementById('delete-btn').style.display='block';
+  document.getElementById('f-name').value=c.name||'';
+  document.getElementById('f-company').value=c.company||'';
+  document.getElementById('f-role').value=c.role||'';
+  document.getElementById('f-stage').value=c.stage||'identified';
+  document.getElementById('f-source').value=c.source||'LinkedIn';
+  document.getElementById('f-method').value=c.method||'LinkedIn';
+  document.getElementById('f-date').value=c.date||'';
+  document.getElementById('f-linkedin').value=c.linkedin||'';
+  document.getElementById('f-email').value=c.email||'';
+  document.getElementById('f-owe').value=c.owe||'';
+  document.getElementById('f-offered').value=c.offered||'';
+  document.getElementById('f-notes').value=c.notes||'';
+  document.getElementById('f-tags').value=c.tags||'';
+  document.getElementById('f-ask').value=c.ask||'';
+  currentHeat=c.heat||0;
+  document.querySelectorAll('.heat-opt').forEach(b=>b.classList.toggle('selected',parseInt(b.dataset.val)<=currentHeat));
+  document.getElementById('contact-modal').classList.add('open');
+}
+
+function saveContact(){
+  const name=document.getElementById('f-name').value.trim();
+  if(!name){document.getElementById('f-name').focus();toast('name is required');return;}
+  const data={
+    id:editingId||uid(),name,
+    company:document.getElementById('f-company').value.trim(),
+    role:document.getElementById('f-role').value.trim(),
+    stage:document.getElementById('f-stage').value,
+    source:document.getElementById('f-source').value,
+    method:document.getElementById('f-method').value,
+    date:document.getElementById('f-date').value,
+    linkedin:document.getElementById('f-linkedin').value.trim(),
+    email:document.getElementById('f-email').value.trim(),
+    owe:document.getElementById('f-owe').value.trim(),
+    offered:document.getElementById('f-offered').value.trim(),
+    notes:document.getElementById('f-notes').value.trim(),
+    tags:document.getElementById('f-tags').value.trim(),
+    ask:document.getElementById('f-ask').value,
+    heat:currentHeat,
+    _created:editingId?(contacts.find(x=>x.id===editingId)||{})._created||Date.now():Date.now(),
+    _updated:Date.now(),
+  };
+  if(editingId){const i=contacts.findIndex(x=>x.id===editingId);if(i>-1)contacts[i]=data;}
+  else contacts.unshift(data);
+  save();closeModal('contact-modal');render();toast(editingId?'contact updated':'contact added');
+}
+
+function deleteContact(){
+  if(!editingId)return;
+  contacts=contacts.filter(x=>x.id!==editingId);
+  save();closeModal('contact-modal');render();toast('contact deleted');
+}
+
+function quickMark(id){
+  const c=contacts.find(x=>x.id===id);
+  if(c){c.date=todayStr();c._updated=Date.now();save();render();toast('marked as contacted');}
+}
+function markContactedById(){if(viewingId)quickMark(viewingId);}
+
+function openDetail(id){
+  viewingId=id;
+  const c=contacts.find(x=>x.id===id);if(!c)return;
+  const stage=STAGES[c.stage]||STAGES['identified'];
+  const ai=avatarIdx(c.name);
+  const d=daysSince(c.date);
+  const dateLabel=d===null?'never':(d===0?'today':(d===1?'yesterday':d+'d ago'));
+  const heat=c.heat||0;
+  const heatDots=[1,2,3,4,5].map(n=>`<div class="heat-dot${n<=heat?' lit':''}" style="width:10px;height:10px;"></div>`).join('');
+  const tagsHTML=(c.tags||'').split(',').filter(t=>t.trim()).map(t=>`<span class="tag">${t.trim()}</span>`).join('');
+  document.getElementById('detail-title').textContent=c.name;
+  document.getElementById('detail-body').innerHTML=`
+    <div style="display:flex;align-items:center;gap:14px;margin-bottom:20px;">
+      <div class="card-avatar" style="width:48px;height:48px;font-size:15px;background:${AVATAR_BG[ai]};color:${AVATAR_FG[ai]};">${initials(c.name)}</div>
+      <div>
+        <div style="font-size:16px;font-weight:500;color:var(--text);">${c.name}</div>
+        <div style="font-size:12px;color:var(--text2);margin-top:3px;">${[c.role,c.company].filter(Boolean).join(' @ ')||'—'}</div>
+        <div style="margin-top:6px;display:flex;gap:6px;flex-wrap:wrap;">
+          <span class="stage-pill" style="background:${stage.color}18;color:${stage.color};border:1px solid ${stage.color}30;">${stage.label}</span>
+        </div>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;font-size:12px;">
+      <div><div style="font-size:10px;color:var(--text3);letter-spacing:0.07em;text-transform:uppercase;margin-bottom:3px;">source</div><div style="color:var(--text2);">${c.source||'—'}</div></div>
+      <div><div style="font-size:10px;color:var(--text3);letter-spacing:0.07em;text-transform:uppercase;margin-bottom:3px;">last contact</div><div style="color:var(--text2);">${dateLabel}</div></div>
+      <div><div style="font-size:10px;color:var(--text3);letter-spacing:0.07em;text-transform:uppercase;margin-bottom:3px;">preferred method</div><div style="color:var(--text2);">${c.method||'—'}</div></div>
+      <div><div style="font-size:10px;color:var(--text3);letter-spacing:0.07em;text-transform:uppercase;margin-bottom:3px;">target ask</div><div style="color:var(--text2);">${c.ask?c.ask.replace(/-/g,' '):'—'}</div></div>
+      ${c.linkedin?`<div><div style="font-size:10px;color:var(--text3);letter-spacing:0.07em;text-transform:uppercase;margin-bottom:3px;">linkedin</div><div><a href="${c.linkedin.startsWith('http')?c.linkedin:'https://'+c.linkedin}" target="_blank" style="color:var(--info);">${c.linkedin}</a></div></div>`:''}
+      ${c.email?`<div><div style="font-size:10px;color:var(--text3);letter-spacing:0.07em;text-transform:uppercase;margin-bottom:3px;">email</div><div style="color:var(--text2);">${c.email}</div></div>`:''}
+    </div>
+    <div style="display:flex;gap:4px;margin-bottom:16px;">${heatDots}</div>
+    ${c.owe?`<div style="background:rgba(200,97,74,0.08);border:1px solid rgba(200,97,74,0.15);border-radius:var(--radius);padding:10px 12px;margin-bottom:8px;font-size:12px;color:var(--danger);">↑ i owe them: ${c.owe}</div>`:''}
+    ${c.offered?`<div style="background:rgba(106,184,122,0.08);border:1px solid rgba(106,184,122,0.15);border-radius:var(--radius);padding:10px 12px;margin-bottom:8px;font-size:12px;color:var(--success);">↓ they offered: ${c.offered}</div>`:''}
+    ${c.notes?`<div style="margin-bottom:12px;"><div style="font-size:10px;color:var(--text3);letter-spacing:0.07em;text-transform:uppercase;margin-bottom:6px;">notes</div><div style="font-size:12px;color:var(--text2);line-height:1.7;">${c.notes}</div></div>`:''}
+    ${tagsHTML?`<div style="margin-bottom:16px;">${tagsHTML}</div>`:''}
+    ${(()=>{
+      const lj=getLinkedJobsForContact(c.id);
+      if(!lj.length) return '';
+      return `<div style="margin-bottom:16px;">
+        <div style="font-size:10px;color:var(--text3);letter-spacing:0.07em;text-transform:uppercase;margin-bottom:8px;">linked jobs</div>
+        <div style="display:flex;flex-wrap:wrap;gap:6px;">${lj.map(j=>{
+          const stg=JOB_STAGES[j.stage]||JOB_STAGES['wishlist'];
+          return `<span onclick="openJobModal('${j.id}')" style="font-size:11px;background:${stg.color}18;color:${stg.color};border:1px solid ${stg.color}30;border-radius:4px;padding:3px 10px;cursor:pointer;">${j.role} @ ${j.company||'?'}</span>`;
+        }).join('')}</div>
+      </div>`;
+    })()}
+    <div style="border-top:1px solid var(--border);padding-top:14px;margin-top:4px;">
+      <div style="font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:var(--text3);margin-bottom:10px;">log interaction</div>
+      <div style="display:flex;gap:8px;margin-bottom:8px;flex-wrap:wrap;">
+        ${['call','email','text','meeting','linkedin','other'].map(t=>`<button onclick="quickLogInteraction('${c.id}','${t}')" style="font-size:10px;padding:4px 10px;border-radius:20px;border:1px solid var(--border2);background:transparent;color:var(--text2);font-family:var(--font-mono);cursor:pointer;letter-spacing:0.04em;transition:all 0.1s;" onmouseenter="this.style.background='var(--bg3)';this.style.color='var(--text)'" onmouseleave="this.style.background='transparent';this.style.color='var(--text2)'">${t}</button>`).join('')}
+      </div>
+      <div style="display:flex;gap:8px;">
+        <input id="ix-notes-${c.id}" type="text" placeholder="add a note (optional)..." style="flex:1;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:7px 10px;color:var(--text);font-family:var(--font-mono);font-size:12px;outline:none;">
+      </div>
+      ${(()=>{
+        const recent = interactions.filter(x=>x.cid===c.id).sort((a,b)=>b.ts-a.ts).slice(0,3);
+        if(!recent.length) return '';
+        const typeColors = {call:'#6ab87a',email:'#5a8fc8',text:'#8f7ac8',meeting:'#c89a4a',linkedin:'#4ab8c8',other:'#5a5650'};
+        return `<div style="margin-top:14px;">
+          <div style="font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:var(--text3);margin-bottom:8px;">recent</div>
+          ${recent.map(ix=>{
+            const tc = typeColors[ix.type]||typeColors.other;
+            const d = new Date(ix.ts);
+            const ds = d.toLocaleDateString('en-US',{month:'short',day:'numeric'});
+            return `<div style="display:flex;align-items:flex-start;gap:10px;padding:6px 0;border-bottom:1px solid var(--border);">
+              <span style="font-size:9px;padding:2px 6px;border-radius:10px;background:${tc}18;color:${tc};border:1px solid ${tc}30;text-transform:uppercase;letter-spacing:0.05em;white-space:nowrap;margin-top:1px;">${ix.type}</span>
+              <div style="flex:1;min-width:0;">
+                ${ix.notes?`<div style="font-size:12px;color:var(--text2);line-height:1.5;">${ix.notes}</div>`:'<div style="font-size:11px;color:var(--text3);font-style:italic;">no notes</div>'}
+              </div>
+              <span style="font-size:10px;color:var(--text3);white-space:nowrap;">${ds}</span>
+            </div>`;
+          }).join('')}
+        </div>`;
+      })()}
+    </div>
+  `;
+  document.getElementById('detail-modal').classList.add('open');
+}
+
+function openEditFromDetail(){const id=viewingId;closeModal('detail-modal');setTimeout(()=>openEditModal(id),50);}
+function closeModal(id){document.getElementById(id).classList.remove('open');}
+
+function showDigest(){
+  const today=new Date().toLocaleDateString('en-US',{weekday:'long',month:'short',day:'numeric'});
+  const overdue=contacts.filter(c=>{const d=daysSince(c.date);return d!==null&&d>14&&!['warm','closed'].includes(c.stage);});
+  const owed=contacts.filter(c=>c.owe&&c.owe.trim());
+  const scheduled=contacts.filter(c=>c.stage==='call-scheduled');
+  const hot=contacts.filter(c=>(c.heat||0)>=4&&c.stage!=='closed');
+  let txt=`NETWORKING DIGEST — ${today}\n${'─'.repeat(40)}\n\n`;
+  if(overdue.length){txt+=`⚠  OVERDUE (${overdue.length})\n`;overdue.forEach(c=>{const d=daysSince(c.date);txt+=`   • ${c.name} @ ${c.company||'?'} — ${d}d [${STAGES[c.stage].label}]`+(c.owe?`\n     owe: ${c.owe}`:'')+'\n';});txt+='\n';}
+  if(owed.length){txt+=`📬 I OWE THEM (${owed.length})\n`;owed.forEach(c=>{txt+=`   • ${c.name}: ${c.owe}\n`;});txt+='\n';}
+  if(scheduled.length){txt+=`📅 CALLS SCHEDULED\n`;scheduled.forEach(c=>{txt+=`   • ${c.name} @ ${c.company||'?'}\n`;});txt+='\n';}
+  if(hot.length){txt+=`🔥 HIGH HEAT\n`;hot.forEach(c=>{txt+=`   • ${c.name} @ ${c.company||'?'}\n`;});txt+='\n';}
+  txt+=`${'─'.repeat(40)}\n${contacts.length} contacts · ${owed.length} owed · ${overdue.length} overdue`;
+  document.getElementById('digest-content').textContent=txt;
+  document.getElementById('digest-modal').classList.add('open');
+}
+
+function copyDigest(){navigator.clipboard.writeText(document.getElementById('digest-content').textContent).catch(()=>{});toast('copied');}
+function showExport(){document.getElementById('export-modal').classList.add('open');}
+
+function exportJSON(){
+  const scratchpad = localStorage.getItem('crm_scratchpad_html')||'';
+  const data = {
+    version: 2,
+    exported: new Date().toISOString(),
+    contacts,
+    jobs,
+    aspirations,
+    interactions,
+    customCompanies,
+    scratchpad,
+  };
+  const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);
+  a.download=`fieldnotes_backup_${todayStr()}.json`;a.click();toast('full backup exported');
+}
+function exportCSV(){
+  const headers=['name','company','role','stage','source','method','date','heat','linkedin','email','owe','offered','notes','tags','ask'];
+  const rows=contacts.map(c=>headers.map(h=>JSON.stringify(c[h]===undefined?'':c[h])).join(','));
+  const blob=new Blob([[headers.join(','),...rows].join('\n')],{type:'text/csv'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);
+  a.download=`fieldnotes_${todayStr()}.csv`;a.click();toast('exported');
+}
+function exportScratchpad(){
+  const html = localStorage.getItem('crm_scratchpad_html')||'';
+  // strip HTML tags to get plain text, preserve newlines
+  const tmp = document.createElement('div');
+  tmp.innerHTML = html;
+  // replace chips with their text content
+  tmp.querySelectorAll('.at-chip,.co-chip').forEach(chip=>{
+    chip.replaceWith(chip.textContent);
+  });
+  const text = tmp.innerText || tmp.textContent || '';
+  if(!text.trim()){ toast('scratchpad is empty'); return; }
+  const blob = new Blob([text], {type:'text/plain'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'fieldnotes_scratchpad_'+todayStr()+'.txt';
+  a.click();
+  toast('notes exported');
+}
+
+function triggerImport(){document.getElementById('import-input').click();}
+function importJSON(e){
+  const file=e.target.files[0];if(!file)return;
+  const reader=new FileReader();
+  reader.onload=ev=>{try{
+    const data=JSON.parse(ev.target.result);
+    let summary=[];
+
+    // contacts
+    const impContacts=data.contacts||(Array.isArray(data)?data:[]);
+    if(Array.isArray(impContacts)&&impContacts.length){
+      const existing=new Set(contacts.map(c=>c.id));
+      let added=0;
+      impContacts.forEach(c=>{if(!existing.has(c.id)){contacts.unshift(c);added++;}});
+      if(added) summary.push(added+' contact'+( added!==1?'s':''));
+    }
+
+    // jobs
+    if(Array.isArray(data.jobs)&&data.jobs.length){
+      const existing=new Set(jobs.map(j=>j.id));
+      let added=0;
+      data.jobs.forEach(j=>{if(!existing.has(j.id)){jobs.unshift(j);added++;}});
+      if(added) summary.push(added+' job'+(added!==1?'s':''));
+    }
+
+    // aspirations
+    if(Array.isArray(data.aspirations)&&data.aspirations.length){
+      const existing=new Set(aspirations.map(a=>a.id));
+      let added=0;
+      data.aspirations.forEach(a=>{if(!existing.has(a.id)){aspirations.push(a);added++;}});
+      if(added) summary.push(added+' aspiration'+(added!==1?'s':''));
+    }
+
+    // interactions
+    if(Array.isArray(data.interactions)&&data.interactions.length){
+      const existing=new Set(interactions.map(i=>i.id));
+      let added=0;
+      data.interactions.forEach(i=>{if(!existing.has(i.id)){interactions.unshift(i);added++;}});
+      if(added) summary.push(added+' interaction'+(added!==1?'s':''));
+    }
+
+    // custom companies
+    if(Array.isArray(data.customCompanies)&&data.customCompanies.length){
+      data.customCompanies.forEach(c=>{if(!customCompanies.includes(c))customCompanies.push(c);});
+    }
+
+    // scratchpad — only restore if current is empty
+    if(data.scratchpad&&!localStorage.getItem('crm_scratchpad_html')){
+      localStorage.setItem('crm_scratchpad_html',data.scratchpad);
+      summary.push('scratchpad');
+    }
+
+    save();render();
+    toast(summary.length?'imported: '+summary.join(', '):'nothing new to import');
+  }catch(err){toast('import failed — invalid file');}};
+  reader.readAsText(file);
+  e.target.value='';
+}
+
+function showCompaniesModal(){
+  const list = document.getElementById('companies-list');
+  const fromContacts = [...new Set(contacts.map(c=>c.company).filter(Boolean))].sort();
+  const all = getCompanies();
+  list.innerHTML = all.map(co=>{
+    const isCustom = customCompanies.includes(co);
+    const isAuto = fromContacts.includes(co);
+    return `<div style="display:flex;align-items:center;justify-content:space-between;padding:6px 10px;background:var(--bg2);border-radius:var(--radius);border:1px solid var(--border);">
+      <span style="font-size:12px;color:var(--text);">${co} <span style="font-size:10px;color:var(--text3);">${isAuto&&isCustom?'auto + custom':isAuto?'auto':'custom'}</span></span>
+      ${isCustom?`<button onclick="removeCustomCompany('${co.replace(/'/g,"\'")}');showCompaniesModal();" style="background:transparent;border:none;color:var(--text3);cursor:pointer;font-size:16px;line-height:1;padding:0 4px;">×</button>`:'<span style="font-size:10px;color:var(--text3);padding:0 4px;">from contacts</span>'}
+    </div>`;
+  }).join('') || '<p style="font-size:12px;color:var(--text3);text-align:center;padding:20px 0;">no companies yet — add contacts or type one above</p>';
+  document.getElementById('companies-modal').classList.add('open');
+  document.getElementById('new-company-input').focus();
+}
+
+function addCustomCompany(){
+  const input = document.getElementById('new-company-input');
+  const val = input.value.trim();
+  if(!val) return;
+  if(!customCompanies.includes(val)) customCompanies.push(val);
+  save();
+  input.value='';
+  showCompaniesModal();
+  toast('company added');
+}
+
+function removeCustomCompany(co){
+  customCompanies = customCompanies.filter(c=>c!==co);
+  save();
+}
+
+document.addEventListener('keydown', e=>{
+  if(document.getElementById('companies-modal').classList.contains('open') && e.key==='Enter'){
+    const input = document.getElementById('new-company-input');
+    if(document.activeElement===input) addCustomCompany();
+  }
+});
+
+function showCompanyPopup(co, matched, chipEl){
+  // remove any existing popup
+  const existing = document.getElementById('co-popup');
+  if(existing) existing.remove();
+
+  const popup = document.createElement('div');
+  popup.id = 'co-popup';
+  const AVATAR_BG_P=['#1a2030','#201a30','#1a2820','#302018','#201818','#182830'];
+  const AVATAR_FG_P=['#5a8fc8','#8f7ac8','#6ab87a','#c89a4a','#c87a6a','#4ab8c8'];
+  popup.innerHTML = `
+    <div style="font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:var(--text3);margin-bottom:10px;">${co}</div>
+    ${matched.map(c=>{
+      const ai = avatarIdx(c.name);
+      const stage = STAGES[c.stage]||STAGES['identified'];
+      return `<div class="co-popup-item" data-cid="${c.id}" style="display:flex;align-items:center;gap:10px;padding:7px 8px;border-radius:var(--radius);cursor:pointer;transition:background 0.1s;">
+        <div style="width:28px;height:28px;border-radius:50%;background:${AVATAR_BG_P[ai]};color:${AVATAR_FG_P[ai]};display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:500;flex-shrink:0;">${initials(c.name)}</div>
+        <div style="flex:1;min-width:0;">
+          <div style="font-size:12px;font-weight:500;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${c.name}</div>
+          <div style="font-size:10px;color:var(--text3);">${c.role||'—'}</div>
+        </div>
+        <span style="font-size:9px;padding:2px 6px;border-radius:10px;background:${stage.color}18;color:${stage.color};border:1px solid ${stage.color}30;white-space:nowrap;">${stage.label}</span>
+      </div>`;
+    }).join('')}
+  `;
+  popup.style.cssText = `position:fixed;background:var(--bg2);border:1px solid var(--border2);border-radius:var(--radius2);padding:12px;min-width:260px;z-index:300;box-shadow:0 8px 32px rgba(0,0,0,0.5);`;
+
+  // position near the chip
+  const rect = chipEl.getBoundingClientRect();
+  popup.style.top = (rect.bottom + 6) + 'px';
+  popup.style.left = rect.left + 'px';
+  document.body.appendChild(popup);
+
+  // clamp to viewport
+  const pr = popup.getBoundingClientRect();
+  if(pr.right > window.innerWidth - 12) popup.style.left = (window.innerWidth - pr.width - 12) + 'px';
+  if(pr.bottom > window.innerHeight - 12) popup.style.top = (rect.top - pr.height - 6) + 'px';
+
+  // hover styles + click handlers
+  popup.querySelectorAll('.co-popup-item').forEach(item=>{
+    item.addEventListener('mouseenter',()=>item.style.background='var(--bg3)');
+    item.addEventListener('mouseleave',()=>item.style.background='');
+    item.addEventListener('click',()=>{ popup.remove(); openDetail(item.dataset.cid); });
+  });
+
+  // close on outside click
+  setTimeout(()=>{
+    function onOutside(e){ if(!popup.contains(e.target)&&e.target!==chipEl){ popup.remove(); document.removeEventListener('click',onOutside); } }
+    document.addEventListener('click', onOutside);
+  }, 50);
+}
+
+// seed demo data
+if(!localStorage.getItem('crm_v4')){
+  contacts=[
+    {id:uid(),name:'Alex Kim',linkedin:'https://www.linkedin.com/in/alexkim',email:'alex@example.com',company:'Skild AI',role:'Founding Engineer',stage:'responded',source:'LinkedIn',method:'LinkedIn',date:new Date(Date.now()-3*86400000).toISOString().split('T')[0],heat:4,owe:'schedule 20 min call',offered:'happy to chat',notes:'Responded to cold DM. Works on robot learning policy infra.',tags:'robotics,ml',ask:'informational',_created:Date.now()},
+    {id:uid(),name:'Jordan Park',linkedin:'https://www.linkedin.com/in/jordanpark',email:'',company:'Covariant',role:'ML Research Engineer',stage:'reached-out',source:'HMC alumni',method:'LinkedIn',date:new Date(Date.now()-10*86400000).toISOString().split('T')[0],heat:3,owe:'follow up if no reply by next week',offered:'',notes:'HMC alum. Works on sim-to-real manipulation. Cold DM sent.',tags:'robotics,alumni',ask:'informational',_created:Date.now()},
+    {id:uid(),name:'Prof. Chen',linkedin:'',email:'chen@hmc.edu',company:'Harvey Mudd',role:'E80 Faculty',stage:'warm',source:'professor / faculty',method:'email',date:new Date(Date.now()-5*86400000).toISOString().split('T')[0],heat:5,owe:'',offered:'rec letter + intro to JPL contact',notes:'Offered to reach out to JPL when robot project is polished.',tags:'faculty,jpl',ask:'referral',_created:Date.now()},
+  ];
+  save();
+}
+
+document.querySelectorAll('.overlay').forEach(o=>o.addEventListener('click',e=>{if(e.target===o)o.classList.remove('open');}));
+load();render();
+</script>
+</body>
+</html>
